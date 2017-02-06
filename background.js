@@ -72,7 +72,7 @@ class TabsConnector {
       tab.port.disconnect();
     }
     this.tabs.delete(tabId);
-    if (tab.data) {
+    if (tab && tab.data) {
       // data changed, need to update
       this.onTabUpdate(this.tabs);
     }
@@ -210,7 +210,7 @@ function init() {
   });
 
   chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
-    monitor.tabsConnector.tabs.delete(tabId);
+    monitor.tabsConnector.onDisconnect(tabId);
     monitor.filteredTabs.delete(tabId);
   });
 
