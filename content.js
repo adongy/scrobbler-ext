@@ -115,12 +115,29 @@ if (!(window && window.scrobblerInitialized)) {
     }
 
     youtube() {
-      // No need for an observer, youtube reloads the page every time
       const element = document.getElementById('eow-title');
       this.callback({
         songTitle: element.title,
         player: 'youtube',
       });
+
+      if (this.observer) {
+        this.observer.reconnect();
+      } else {
+        this.observer = new MutationSummary({
+          rootNode: element,
+          callback: (summaries) => {
+            const songTitle = summaries[0].valueChanged[0].title;
+            if (songTitle) {
+              this.callback({
+                songTitle: songTitle,
+                player: 'youtube',
+              });
+            }
+          },
+          queries: [{attribute: "title"}],
+        });
+      }
     }
 
     listenonrepeat() {
