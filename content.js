@@ -46,20 +46,24 @@ if (!(window && window.scrobblerInitialized)) {
         player: 'spotify',
       });
 
-      this.observer = new MutationSummary({
-        rootNode: element,
-        callback: (summaries) => {
-          const songTitle = summaries[0].added
-            .map((el) => {return el.textContent}).join(" - ");
-          if (songTitle) {
-            this.callback({
-              songTitle: songTitle,
-              player: 'spotify',
-            })
-          }
-        },
-        queries: [{characterData: true}],
-      });
+      if (this.observer && !this.observer.connected) {
+        this.observer.reconnect();
+      } else {
+        this.observer = new MutationSummary({
+          rootNode: element,
+          callback: (summaries) => {
+            const songTitle = summaries[0].added
+              .map((el) => {return el.textContent}).join(" - ");
+            if (songTitle) {
+              this.callback({
+                songTitle: songTitle,
+                player: 'spotify',
+              })
+            }
+          },
+          queries: [{characterData: true}],
+        });
+      }
     }
 
     plug() {
