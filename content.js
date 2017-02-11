@@ -73,7 +73,7 @@ if (!(window && window.scrobblerInitialized)) {
         player: 'plug.dj',
       });
 
-      if (this.observer) {
+      if (this.observer && !this.observer.connected) {
         this.observer.reconnect();
       } else {
         this.observer = new MutationSummary({
@@ -99,7 +99,7 @@ if (!(window && window.scrobblerInitialized)) {
         player: 'nightbot',
       });
 
-      if (this.observer) {
+      if (this.observer && !this.observer.connected) {
         this.observer.reconnect();
       } else {
         this.observer = new MutationSummary({
@@ -125,7 +125,7 @@ if (!(window && window.scrobblerInitialized)) {
         player: 'youtube',
       });
 
-      if (this.observer) {
+      if (this.observer && !this.observer.connected) {
         this.observer.reconnect();
       } else {
         this.observer = new MutationSummary({
@@ -151,7 +151,7 @@ if (!(window && window.scrobblerInitialized)) {
         player: 'listenonrepeat',
       });
 
-      if (this.observer) {
+      if (this.observer && !this.observer.connected) {
         this.observer.reconnect();
       } else {
         this.observer = new MutationSummary({
