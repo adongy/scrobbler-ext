@@ -18,7 +18,7 @@
         "48": "icon/48.png",
         "128": "icon/128.png"
     },
-    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApzvw24ZwFRPwFEYRwAyIPJxWXM9+m0zvvhas1piOyVZmc+J0BEEy2OjXSWTbaPGh279BYjwVVjtyzLK/PObOZmdvq39nRuyxqVI5Fy9A320oWjOS6CwolKO7Tb3N0lpuJcc7ME9wzh7QCBrB6oedOORI6VPIkziZ6MyKzaovmAZEbdxhYzXIaUC3iuIBKpfzRaIujxJfV/Mu9jLcx5dqrVahuKIa2DMW3ILLYZ6jZyxkuo8YOCZMEuz4nrjrWHmRQOuQBmOSeJAa7JWpJfS6tcalld2V4AOZmXBjEgZubkKx5wJswG6p00FXUfE0eHu44O42VjKf/1VNKimZJv5Q5QIDAQAB",
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2hT6FR9TNRUNIuLr4BnSPoFueZ+C/dkqz88myFcvZorC+v0t+L/tb8KjuuDidAYQ9ZcdP/aTmywQJYAgpUdD7LO3o0rgKB0msM8ZP1o0DHWWm+4OqWWMesUEyzStWeI70EzBcam/pgx2uM5IRvYvZZuZ3CprQGo/NzX/wfDi2kp0ViKKhMN1Cm21OFq5bt8a3wDfInd1Bwc17tBsb1chO3UJ1ap3UaZN1hy/9XLNtIODIfLT5fQUarB+nsoKvbtMND2kP5lm07KfDKrUbC/m92LbYac/aQz5+GZ0tYCKYhASjMiPS7j5Zb8MisSt+VVuRxFE0rG9ajamJiwMbJk42wIDAQAB",
     "browser_action": {
         "default_popup": "popup.html",
         "default_title": "Monitor songs"
