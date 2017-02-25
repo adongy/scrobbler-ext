@@ -46,10 +46,6 @@ body {
   padding: 14px 12px;
 }
 
-#connection:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
 #list > div {
   padding: 6px 0 6px 12px;
   background-color: white;

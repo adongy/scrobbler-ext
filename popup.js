@@ -3,22 +3,18 @@ window.addEventListener('DOMContentLoaded', () => {
     backgroundPage.init();
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      renderTabs(request.tabs, request.filtered);
+      if (request.type == 'tabs') {
+        renderTabs(request.tabs, request.filtered);
+      } else if (request.type == 'status') {
+        renderApplicationStatus(request.connection);
+      }
     });
 
-    chrome.runtime.sendMessage({type: 'connectionStatus'}, (response) => {
-      renderApplicationStatus(response.connection);
-    });
+    chrome.runtime.sendMessage({type: 'connectionStatus'});
 
     chrome.runtime.sendMessage({type: 'tabs'}, (response) => {
       renderTabs(response.tabs, response.filtered);
     });
-
-    document.getElementById('connection').onclick = () => {
-      chrome.runtime.sendMessage({type: 'connectionToggle'}, (response) => {
-        renderApplicationStatus(response.connection);
-      });
-    };
 
     document.getElementById('list').addEventListener('click', (event) => {
       if (event.target.classList.contains('toggle') || event.target.classList.contains('icon-off')) {

@@ -1,44 +1,28 @@
 class NativeConnector {
   constructor() {
     // Class properties still not supported in chrome without transpiling
-    this.onMessage = this.onMessage.bind(this);
-    this.onDisconnect = this.onDisconnect.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
-    this.connect = this.connect.bind(this);
+    this.tryConnect = this.tryConnect.bind(this);
 
     this.NATIVE_APPLICATION_NAME = "com.github.adongy.scrobbler";
-    this.port = null;
   }
 
-  connect() {
+  tryConnect() {
     console.log('Connecting to native messaging host');
-    if (this.port == null) {
-      this.port = chrome.runtime.connectNative(this.NATIVE_APPLICATION_NAME);
-      this.port.onMessage.addListener(this.onMessage);
-      this.port.onDisconnect.addListener(this.onDisconnect);
-    }
-  }
-
-  onMessage(message) {
-    // Currently we don't send message from the native host to the extension
-    console.log('Received message from native messaging host: ', message);
-  }
-
-  onDisconnect() {
-    console.log('Native port disconnected');
-    if (chrome.runtime.lastError && chrome.runtime.lastError.message) {
-      console.log('Last error: ', chrome.runtime.lastError.message)
-    }
-    this.port = null;
-    // Reflect that in the UI
+    this.sendMessage([]);
   }
 
   sendMessage(message) {
-    if (this.port == null) {
-      // todo: don't automatically reconnect, just reflect in the ui that it got closed
-      this.connect();
-    }
-    this.port.postMessage(message);
+    chrome.runtime.sendNativeMessage(
+      this.NATIVE_APPLICATION_NAME,
+      { message: message },
+      (response) => {
+        chrome.runtime.sendMessage({
+          type: "status",
+          connection: !!response && response.status == "ok",
+        });
+      }
+    )
   }
 }
 
@@ -117,27 +101,24 @@ class BackgroundScript {
     // Class properties still not supported in chrome without transpiling
     this.onTabUpdate = this.onTabUpdate.bind(this);
     this.getMessage = this.getMessage.bind(this);
-    this.toggle = this.toggle.bind(this);
     this.getMessage = this.getMessage.bind(this);
     this.formatMessage = this.formatMessage.bind(this);
+    this.tryConnect = this.tryConnect.bind(this);
 
     this.tabsConnector = new TabsConnector(this.onTabUpdate);
     this.nativeConnector = new NativeConnector();
 
-    this.shouldConnect = false;
     this.filteredTabs = new Set();
   }
 
   onTabUpdate(tabs) {
     const message = this.getMessage(tabs);
     chrome.runtime.sendMessage({
+      type: "tabs",
       tabs: message,
       // Cannot send Set over the wire, only Array
       filtered: Array.from(this.filteredTabs),
     });
-    if (!this.shouldConnect) {
-      return;
-    }
     this.nativeConnector.sendMessage(this.formatMessage(message));
   }
 
@@ -171,13 +152,8 @@ class BackgroundScript {
     return this.filteredTabs.has(tabId);
   }
 
-  toggle() {
-    this.shouldConnect = !this.shouldConnect;
-    if (this.shouldConnect) {
-      this.nativeConnector.connect();
-      this.onTabUpdate(this.tabsConnector.tabs);
-    }
-    return this.shouldConnect;
+  tryConnect() {
+    return this.nativeConnector.tryConnect()
   }
 }
 
@@ -216,9 +192,7 @@ function init() {
 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type == 'connectionStatus') {
-      sendResponse({connection: monitor.shouldConnect});
-    } else if (request.type == 'connectionToggle') {
-      sendResponse({connection: monitor.toggle()});
+      monitor.tryConnect();
     } else if (request.type == 'tabs') {
       const message = monitor.getMessage(monitor.tabsConnector.tabs);
       // Cannot send Map over the wire, only Object
