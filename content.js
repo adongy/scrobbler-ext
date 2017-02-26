@@ -41,13 +41,17 @@ if (!(window && window.scrobblerInitialized)) {
       const element = document.getElementById('player');
       const songTitle = Array.from(element.getElementsByTagName('a'))
         .map((el) => {return el.textContent}).join(" - ");
-      this.callback({
-        songTitle: songTitle,
-        player: 'spotify',
-      });
+      if (songTitle) {
+        this.callback({
+          songTitle: songTitle,
+          player: 'spotify',
+        });
+      }
 
-      if (this.observer && !this.observer.connected) {
-        this.observer.reconnect();
+      if (this.observer) {
+        if (!this.observer.connected) {
+          this.observer.reconnect();
+        }
       } else {
         this.observer = new MutationSummary({
           rootNode: element,
@@ -68,13 +72,17 @@ if (!(window && window.scrobblerInitialized)) {
 
     plug() {
       const element = document.getElementById('now-playing-media');
-      this.callback({
-        songTitle: element.title,
-        player: 'plug.dj',
-      });
+      if (element && element.title) {
+        this.callback({
+          songTitle: element.title,
+          player: 'plug.dj',
+        });
+      }
 
-      if (this.observer && !this.observer.connected) {
-        this.observer.reconnect();
+      if (this.observer) {
+        if (!this.observer.connected) {
+          this.observer.reconnect();
+        }
       } else {
         this.observer = new MutationSummary({
           rootNode: element,
@@ -94,13 +102,17 @@ if (!(window && window.scrobblerInitialized)) {
 
     nightbot() {
       const element = document.querySelector('div.current-track strong.ng-binding');
-      this.callback({
-        songTitle: element.textContent,
-        player: 'nightbot',
-      });
+      if (element && element.textContent) {
+        this.callback({
+          songTitle: element.textContent,
+          player: 'nightbot',
+        });
+      }
 
-      if (this.observer && !this.observer.connected) {
-        this.observer.reconnect();
+      if (this.observer) {
+        if (!this.observer.connected) {
+          this.observer.reconnect();
+        }
       } else {
         this.observer = new MutationSummary({
           rootNode: element,
@@ -120,13 +132,17 @@ if (!(window && window.scrobblerInitialized)) {
 
     youtube() {
       const element = document.getElementById('eow-title');
-      this.callback({
-        songTitle: element.title,
-        player: 'youtube',
-      });
+      if (element && element.title) {
+        this.callback({
+          songTitle: element.title,
+          player: 'youtube',
+        });
+      }
 
-      if (this.observer && !this.observer.connected) {
-        this.observer.reconnect();
+      if (this.observer) {
+        if (!this.observer.connected) {
+          this.observer.reconnect();
+        }
       } else {
         this.observer = new MutationSummary({
           rootNode: element,
@@ -146,13 +162,17 @@ if (!(window && window.scrobblerInitialized)) {
 
     listenonrepeat() {
       const element = document.querySelector('div.video-title');
-      this.callback({
-        songTitle: element.textContent,
-        player: 'listenonrepeat',
-      });
+      if (element && element.textContent) {
+        this.callback({
+          songTitle: element.textContent,
+          player: 'listenonrepeat',
+        });
+      }
 
-      if (this.observer && !this.observer.connected) {
-        this.observer.reconnect();
+      if (this.observer) {
+        if (!this.observer.connected) {
+          this.observer.reconnect();
+        }
       } else {
         this.observer = new MutationSummary({
           rootNode: element,
