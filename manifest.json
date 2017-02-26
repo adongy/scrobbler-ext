@@ -3,7 +3,6 @@
     "name": "Music Scrobbler",
     "version": "0.0.4",
     "background": {
-        "persistent": false,
         "scripts": ["background.js"]
     },
     "permissions": [

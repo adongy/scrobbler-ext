@@ -1,27 +1,23 @@
 window.addEventListener('DOMContentLoaded', () => {
-  chrome.runtime.getBackgroundPage((backgroundPage) => {
-    backgroundPage.init();
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type == 'sendTabs') {
+      renderTabs(request.tabs, request.filtered);
+    } else if (request.type == 'sendStatus') {
+      renderApplicationStatus(request.connection);
+    }
+  });
 
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      if (request.type == 'sendTabs') {
-        renderTabs(request.tabs, request.filtered);
-      } else if (request.type == 'sendStatus') {
-        renderApplicationStatus(request.connection);
-      }
-    });
+  chrome.runtime.sendMessage({type: 'status'});
+  chrome.runtime.sendMessage({type: 'tabs'});
 
-    chrome.runtime.sendMessage({type: 'status'});
-    chrome.runtime.sendMessage({type: 'tabs'});
-
-    document.getElementById('list').addEventListener('click', (event) => {
-      if (event.target.classList.contains('toggle') || event.target.classList.contains('icon-off')) {
-        const element = event.target.closest('div');
-        chrome.runtime.sendMessage({type: 'tabToggle', tabId: element.dataset.tabId}, (response) => {
-          renderToggle(element, response.status);
-        })
-      }
-    });
-  })
+  document.getElementById('list').addEventListener('click', (event) => {
+    if (event.target.classList.contains('toggle') || event.target.classList.contains('icon-off')) {
+      const element = event.target.closest('div');
+      chrome.runtime.sendMessage({type: 'tabToggle', tabId: element.dataset.tabId}, (response) => {
+        renderToggle(element, response.status);
+      })
+    }
+  });
 });
 
 function renderToggle(element, status) {
