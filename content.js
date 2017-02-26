@@ -4,6 +4,8 @@ if (!(window && window.scrobblerInitialized)) {
       this.callback = callback;
       this.observer = null;
       this.finder = null;
+      this.maxTries = 5;
+      this.tries = 0;
 
       this.players = new Map([
         ["youtube.com", this.youtube],
@@ -17,7 +19,7 @@ if (!(window && window.scrobblerInitialized)) {
     getFinder(url = document.location.host) {
       for (let [needle, finder] of this.players.entries()) {
         if (url.includes(needle)) {
-          this.finder = finder;
+          this.finder = finder.bind(this);
           return finder;
         }
       }
@@ -42,10 +44,18 @@ if (!(window && window.scrobblerInitialized)) {
       const songTitle = Array.from(element.getElementsByTagName('a'))
         .map((el) => {return el.textContent}).join(" - ");
       if (songTitle) {
+        this.tries = 0;
         this.callback({
           songTitle: songTitle,
           player: 'spotify',
         });
+      } else {
+        // Maybe page didn't fully load, restart a few times
+        if (this.tries < this.maxTries) {
+          this.tries += 1;
+          console.log(`Retrying... (${this.tries}/${this.maxTries})`);
+          setTimeout(this.finder, 250);
+        }
       }
 
       if (this.observer) {
@@ -73,10 +83,18 @@ if (!(window && window.scrobblerInitialized)) {
     plug() {
       const element = document.getElementById('now-playing-media');
       if (element && element.title) {
+        this.tries = 0;
         this.callback({
           songTitle: element.title,
           player: 'plug.dj',
         });
+      } else {
+        // Maybe page didn't fully load, restart a few times
+        if (this.tries < this.maxTries) {
+          this.tries += 1;
+          console.log(`Retrying... (${this.tries}/${this.maxTries})`);
+          setTimeout(this.finder, 250);
+        }
       }
 
       if (this.observer) {
@@ -103,10 +121,18 @@ if (!(window && window.scrobblerInitialized)) {
     nightbot() {
       const element = document.querySelector('div.current-track strong.ng-binding');
       if (element && element.textContent) {
+        this.tries = 0;
         this.callback({
           songTitle: element.textContent,
           player: 'nightbot',
         });
+      } else {
+        // Maybe page didn't fully load, restart a few times
+        if (this.tries < this.maxTries) {
+          this.tries += 1;
+          console.log(`Retrying... (${this.tries}/${this.maxTries})`);
+          setTimeout(this.finder, 250);
+        }
       }
 
       if (this.observer) {
@@ -133,10 +159,18 @@ if (!(window && window.scrobblerInitialized)) {
     youtube() {
       const element = document.getElementById('eow-title');
       if (element && element.title) {
+        this.tries = 0;
         this.callback({
           songTitle: element.title,
           player: 'youtube',
         });
+      } else {
+        // Maybe page didn't fully load, restart a few times
+        if (this.tries < this.maxTries) {
+          this.tries += 1;
+          console.log(`Retrying... (${this.tries}/${this.maxTries})`);
+          setTimeout(this.finder, 250);
+        }
       }
 
       if (this.observer) {
@@ -163,10 +197,18 @@ if (!(window && window.scrobblerInitialized)) {
     listenonrepeat() {
       const element = document.querySelector('div.video-title');
       if (element && element.textContent) {
+        this.tries = 0;
         this.callback({
           songTitle: element.textContent,
           player: 'listenonrepeat',
         });
+      } else {
+        // Maybe page didn't fully load, restart a few times
+        if (this.tries < this.maxTries) {
+          this.tries += 1;
+          console.log(`Retrying... (${this.tries}/${this.maxTries})`);
+          setTimeout(this.finder, 250);
+        }
       }
 
       if (this.observer) {
