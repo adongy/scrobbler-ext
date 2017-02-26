@@ -9,16 +9,16 @@ class NativeConnector {
 
   tryConnect() {
     console.log('Connecting to native messaging host');
-    this.sendMessage([]);
+    this.sendMessage([], "ping");
   }
 
-  sendMessage(message) {
+  sendMessage(message, type = "update") {
     chrome.runtime.sendNativeMessage(
       this.NATIVE_APPLICATION_NAME,
-      { message: message },
+      { type: type, message: message },
       (response) => {
         chrome.runtime.sendMessage({
-          type: "status",
+          type: "sendStatus", // can't reuse same identifier as popup sends, we don't check the sender so it's recursive
           connection: !!response && response.status == "ok",
         });
       }
@@ -114,7 +114,7 @@ class BackgroundScript {
   onTabUpdate(tabs) {
     const message = this.getMessage(tabs);
     chrome.runtime.sendMessage({
-      type: "tabs",
+      type: "sendTabs", // can't reuse same identifier as popup sends, we don't check the sender so it's recursive
       tabs: message,
       // Cannot send Set over the wire, only Array
       filtered: Array.from(this.filteredTabs),
@@ -191,12 +191,10 @@ function init() {
   });
 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type == 'connectionStatus') {
+    if (request.type == 'status') {
       monitor.tryConnect();
     } else if (request.type == 'tabs') {
-      const message = monitor.getMessage(monitor.tabsConnector.tabs);
-      // Cannot send Map over the wire, only Object
-      sendResponse({tabs: message, filtered: Array.from(monitor.filteredTabs)});
+      monitor.onTabUpdate(monitor.tabsConnector.tabs);
     } else if (request.type == 'tabToggle') {
       const tabId = parseInt(request.tabId, 10);
       sendResponse({status: monitor.toggleTab(tabId)});
