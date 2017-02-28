@@ -3,6 +3,7 @@ class NativeConnector {
     // Class properties still not supported in chrome without transpiling
     this.sendMessage = this.sendMessage.bind(this);
     this.tryConnect = this.tryConnect.bind(this);
+    this.lastMessage = null;
 
     this.NATIVE_APPLICATION_NAME = "com.github.adongy.scrobbler";
   }
@@ -13,6 +14,14 @@ class NativeConnector {
   }
 
   sendMessage(message, type = "update") {
+    if (type == "update") {
+      if (this.lastMessage == message) {
+        return
+      } else {
+        this.lastMessage = message;
+      }
+    }
+
     chrome.runtime.sendNativeMessage(
       this.NATIVE_APPLICATION_NAME,
       { type: type, message: message },
