@@ -1,20 +1,48 @@
 class NativeConnector {
   constructor() {
     // Class properties still not supported in chrome without transpiling
+    this.onMessage = this.onMessage.bind(this);
+    this.onDisconnect = this.onDisconnect.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
     this.tryConnect = this.tryConnect.bind(this);
+    this.connect = this.connect.bind(this);
+    this.port = null;
     this.lastMessage = null;
 
     this.NATIVE_APPLICATION_NAME = "com.github.adongy.scrobbler";
   }
 
-  tryConnect() {
-    console.log('Connecting to native messaging host');
-    this.sendMessage([], "ping");
+  onMessage(message) {
+    console.log('Received message from native messaging host: ', message);
+    chrome.runtime.sendMessage({
+      type: "sendStatus", // can't reuse same identifier as popup sends, we don't check the sender so it's recursive
+      connection: !!message && message.status == "ok",
+    });
   }
 
-  sendMessage(message, type = "update") {
-    if (type == "update") {
+  onDisconnect() {
+    console.log('Native port disconnected');
+    if (chrome.runtime.lastError && chrome.runtime.lastError.message) {
+      console.log('Last error: ', chrome.runtime.lastError.message);
+    }
+    this.port = null;
+  }
+
+  connect() {
+    console.log('Connecting to native messaging host');
+    if (this.port === null) {
+      this.port = chrome.runtime.connectNative(this.NATIVE_APPLICATION_NAME);
+      this.port.onMessage.addListener(this.onMessage);
+      this.port.onDisconnect.addListener(this.onDisconnect);
+    }
+  }
+
+  tryConnect() {
+    this.sendMessage([], 'ping');
+  }
+
+  sendMessage(message, type = 'update') {
+    if (type == 'update') {
       if (this.lastMessage == message) {
         return
       } else {
@@ -22,16 +50,11 @@ class NativeConnector {
       }
     }
 
-    chrome.runtime.sendNativeMessage(
-      this.NATIVE_APPLICATION_NAME,
-      { type: type, message: message },
-      (response) => {
-        chrome.runtime.sendMessage({
-          type: "sendStatus", // can't reuse same identifier as popup sends, we don't check the sender so it's recursive
-          connection: !!response && response.status == "ok",
-        });
-      }
-    )
+    if (this.port === null) {
+      this.connect();
+    }
+
+    this.port.postMessage({ type: type, message: message })
   }
 }
 
