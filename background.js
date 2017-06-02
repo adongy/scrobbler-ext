@@ -105,13 +105,13 @@ class TabsConnector {
         // content script already loaded
         this.startMonitor(tabId);
         return;
+      } else {
+        chrome.tabs.executeScript(tabId, {file: "vendor/mutation-summary.js"}, () => {
+          chrome.tabs.executeScript(tabId, {file: "content.js"}, () => {
+            this.startMonitor(tabId);
+          });
+        });
       }
-    })
-
-    chrome.tabs.executeScript(tabId, {file: "vendor/mutation-summary.js"}, () => {
-      chrome.tabs.executeScript(tabId, {file: "content.js"}, () => {
-        this.startMonitor(tabId);
-      });
     });
   }
 
