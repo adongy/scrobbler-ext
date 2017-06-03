@@ -6,6 +6,8 @@ if (!(window && window.scrobblerInitialized)) {
       this.finder = null;
       this.maxTries = 5;
       this.tries = 0;
+      this.pauseMusic = this.pauseMusic.bind(this);
+      this.unpauseMusic = this.unpauseMusic.bind(this);
 
       this.players = new Map([
         ["youtube.com", this.youtube],
@@ -37,6 +39,21 @@ if (!(window && window.scrobblerInitialized)) {
         return
       }
       this.finder();
+    }
+
+    // currently only support youtube for pause/unpause
+    pauseMusic() {
+      const elements = document.getElementsByTagName("video");
+      for (let el of elements) {
+        el.pause();
+      }
+    }
+
+    unpauseMusic() {
+      const elements = document.getElementsByTagName("video");
+      for (let el of elements) {
+        el.play();
+      }
     }
 
     spotify() {
@@ -277,7 +294,12 @@ if (!(window && window.scrobblerInitialized)) {
 
     onMessage(message) {
       // We currently don't send messages from the background page to the content script
-      console.log(message);
+      console.log("Received message from background page:", message);
+      if (message && message.action == "pause") {
+        this.finder.pauseMusic();
+      } else if (message && message.action == "unpause") {
+        this.finder.unpauseMusic();
+      }
     }
 
     sendTitle({songTitle, player}) {

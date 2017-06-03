@@ -1,3 +1,5 @@
+let monitor;
+
 class NativeConnector {
   constructor() {
     // Class properties still not supported in chrome without transpiling
@@ -14,10 +16,16 @@ class NativeConnector {
 
   onMessage(message) {
     console.log('Received message from native messaging host: ', message);
-    chrome.runtime.sendMessage({
-      type: "sendStatus", // can't reuse same identifier as popup sends, we don't check the sender so it's recursive
-      connection: !!message && message.status == "ok",
-    });
+    if (message && message.status == "ok") {
+      chrome.runtime.sendMessage({
+        type: "sendStatus", // can't reuse same identifier as popup sends, we don't check the sender so it's recursive
+        connection: true,
+      });
+    }
+
+    if (message && message.action) {
+      monitor.sendMessage(message.action);
+    }
   }
 
   onDisconnect() {
@@ -62,6 +70,7 @@ class TabsConnector {
 
   constructor(onTabUpdate) {
     // Class properties still not supported in chrome without transpiling
+    this.sendMessage = this.sendMessage.bind(this);
     this.onMessage = this.onMessage.bind(this);
     this.onDisconnect = this.onDisconnect.bind(this);
     this.runContentScript = this.runContentScript.bind(this);
@@ -95,6 +104,11 @@ class TabsConnector {
   }
 
   runContentScript(tabId) {
+    const tabData = this.tabs.get(tabId);
+    if (tabData && tabData.port) {
+      return;
+    }
+
     this.tabs.set(tabId, {
       port: null,
       data: null,
@@ -126,6 +140,15 @@ class TabsConnector {
     });
   }
 
+  sendMessage(action) {
+    console.log(`Sending ${action} to all tabs`);
+    for (let [tabId, value] of this.tabs) {
+      if (value && value.port) {
+        value.port.postMessage({ action: action });
+      }
+    }
+    this.onTabUpdate(this.tabs);
+  }
 }
 
 class BackgroundScript {
@@ -135,6 +158,7 @@ class BackgroundScript {
     this.getMessage = this.getMessage.bind(this);
     this.getMessage = this.getMessage.bind(this);
     this.formatMessage = this.formatMessage.bind(this);
+    this.sendMessage = this.sendMessage.bind(this);
     this.tryConnect = this.tryConnect.bind(this);
 
     this.tabsConnector = new TabsConnector(this.onTabUpdate);
@@ -167,7 +191,7 @@ class BackgroundScript {
   formatMessage(message) {
     // Format message for the native application
     for (let tabId of this.filteredTabs) {
-      if (tabIn in message) {
+      if (tabId in message) {
         delete message[tabId];
       }
     }
@@ -187,9 +211,11 @@ class BackgroundScript {
   tryConnect() {
     return this.nativeConnector.tryConnect()
   }
-}
 
-let monitor;
+  sendMessage(action) {
+    this.tabsConnector.sendMessage(action);
+  }
+}
 
 function init() {
   if (monitor) {
@@ -207,13 +233,16 @@ function init() {
     if (changeInfo.audible === true || (
       tab.status === "complete" && tab.audible === true
     )) {
+      monitor.filteredTabs.delete(tabId);
       monitor.tabsConnector.runContentScript(tabId);
     } else if (monitor.tabsConnector.tabs.has(tabId) && (
       changeInfo.audible === false || (
         tab.status === "complete" && tab.audible === false
       )
     )) {
-      monitor.tabsConnector.onDisconnect(tabId);
+      // don't disconnect, just hide (note this breaks filteredTabs)
+      //monitor.tabsConnector.onDisconnect(tabId);
+      monitor.filteredTabs.add(tabId);
     }
   });
 
