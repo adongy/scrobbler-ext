@@ -40,6 +40,8 @@ function renderTabs(tabs, filtered) {
   while (list.firstChild) list.removeChild(list.firstChild);
 
   for (let [key, tab] of Object.entries(tabs)) {
+    // HACK: we use filtered tabs to exclude tab completely...
+    if (filtered.indexOf(Number(key)) != -1) continue;
     const element = document.createElement('div');
     element.dataset.tabId = key;
 
@@ -52,7 +54,8 @@ function renderTabs(tabs, filtered) {
     element.appendChild(toggle);
 
     const title = document.createElement('span');
-    title.textContent = tab.songTitle ? tab.songTitle : 'Unknown';
+    if (!tab.songTitle) continue;
+    title.textContent = tab.songTitle;
     element.appendChild(title);
 
     renderToggle(element, filtered.indexOf(key) != -1);

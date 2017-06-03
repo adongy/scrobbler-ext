@@ -199,9 +199,9 @@ if (!(window && window.scrobblerInitialized)) {
           callback: (summaries) => {
             if (summaries.length > 0) {
               if (summaries[0].removed.length > 0) {
-                sendTitle({ songTitle: "", player: "youtube" })
+                this.callback({ songTitle: "", player: "youtube" })
               } else if (summaries[0].added.length > 0) {
-                sendTitle({ songTitle: summaries[0].added[0].title, player: "youtube" });
+                this.callback({ songTitle: summaries[0].added[0].title, player: "youtube" });
               }
             }
           },
@@ -303,6 +303,7 @@ if (!(window && window.scrobblerInitialized)) {
     }
 
     sendTitle({songTitle, player}) {
+      console.log("Sending", songTitle, player);
       if (this.port !== null) {
         this.port.postMessage({
           message: {

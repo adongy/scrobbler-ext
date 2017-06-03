@@ -9,7 +9,6 @@ class NativeConnector {
     this.tryConnect = this.tryConnect.bind(this);
     this.connect = this.connect.bind(this);
     this.port = null;
-    this.lastMessage = null;
 
     this.NATIVE_APPLICATION_NAME = "com.github.adongy.scrobbler";
   }
@@ -50,14 +49,6 @@ class NativeConnector {
   }
 
   sendMessage(message, type = 'update') {
-    if (type == 'update') {
-      if (this.lastMessage == message) {
-        return
-      } else {
-        this.lastMessage = message;
-      }
-    }
-
     if (this.port === null) {
       this.connect();
     }
@@ -118,7 +109,6 @@ class TabsConnector {
       if (response && response.message == "pong") {
         // content script already loaded
         this.startMonitor(tabId);
-        return;
       } else {
         chrome.tabs.executeScript(tabId, {file: "vendor/mutation-summary.js"}, () => {
           chrome.tabs.executeScript(tabId, {file: "content.js"}, () => {
@@ -147,7 +137,6 @@ class TabsConnector {
         value.port.postMessage({ action: action });
       }
     }
-    this.onTabUpdate(this.tabs);
   }
 }
 
@@ -235,6 +224,7 @@ function init() {
     )) {
       monitor.filteredTabs.delete(tabId);
       monitor.tabsConnector.runContentScript(tabId);
+      monitor.onTabUpdate(monitor.tabsConnector.tabs);
     } else if (monitor.tabsConnector.tabs.has(tabId) && (
       changeInfo.audible === false || (
         tab.status === "complete" && tab.audible === false
@@ -243,6 +233,7 @@ function init() {
       // don't disconnect, just hide (note this breaks filteredTabs)
       //monitor.tabsConnector.onDisconnect(tabId);
       monitor.filteredTabs.add(tabId);
+      monitor.onTabUpdate(monitor.tabsConnector.tabs);
     }
   });
 
