@@ -179,17 +179,18 @@ if (!(window && window.scrobblerInitialized)) {
         }
       } else {
         this.observer = new MutationSummary({
-          rootNode: element,
           callback: (summaries) => {
-            const songTitle = summaries[0].valueChanged[0].title;
-            if (songTitle) {
-              this.callback({
-                songTitle: songTitle,
-                player: 'youtube',
-              });
+            if (summaries.length > 0) {
+              if (summaries[0].removed.length > 0) {
+                sendTitle({ songTitle: "", player: "youtube" })
+              } else if (summaries[0].added.length > 0) {
+                sendTitle({ songTitle: summaries[0].added[0].title, player: "youtube" });
+              }
             }
           },
-          queries: [{attribute: "title"}],
+          queries: [
+            { element: "#eow-title", elementAttributes: "title" },
+          ],
         });
       }
     }
@@ -292,6 +293,14 @@ if (!(window && window.scrobblerInitialized)) {
     }
   }
 
-  window.scrobblerInitialized = new Connector();
-  window.scrobblerInitialized.listen();
+  const afterLoad = () => {
+    window.scrobblerInitialized = new Connector();
+    window.scrobblerInitialized.listen();
+  };
+
+  if (document.readyState !== 'complete') {
+    window.addEventListener('load', afterLoad);
+  } else {
+    afterLoad();
+  }
 }
