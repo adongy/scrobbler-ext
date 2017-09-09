@@ -174,11 +174,11 @@ if (!(window && window.scrobblerInitialized)) {
     }
 
     youtube() {
-      const element = document.getElementById('eow-title');
-      if (element && element.title) {
+      const element = document.querySelector('#container.ytd-video-primary-info-renderer > h1');
+      if (element && element.textContent) {
         this.tries = 0;
         this.callback({
-          songTitle: element.title,
+          songTitle: element.textContent,
           player: 'youtube',
         });
       } else {
@@ -188,6 +188,7 @@ if (!(window && window.scrobblerInitialized)) {
           console.log(`Retrying... (${this.tries}/${this.maxTries})`);
           setTimeout(this.finder, 250);
         }
+        return;
       }
 
       if (this.observer) {
@@ -196,17 +197,17 @@ if (!(window && window.scrobblerInitialized)) {
         }
       } else {
         this.observer = new MutationSummary({
+          rootNode: element,
+          observeOwnChanges: true,
           callback: (summaries) => {
             if (summaries.length > 0) {
-              if (summaries[0].removed.length > 0) {
-                this.callback({ songTitle: "", player: "youtube" })
-              } else if (summaries[0].added.length > 0) {
-                this.callback({ songTitle: summaries[0].added[0].title, player: "youtube" });
+              if (summaries[0].valueChanged.length > 0) {
+                this.callback({ songTitle: summaries[0].valueChanged[0].textContent, player: "youtube" });
               }
             }
           },
           queries: [
-            { element: "#eow-title", elementAttributes: "title" },
+            { characterData: true },
           ],
         });
       }
